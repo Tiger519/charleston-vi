@@ -51,18 +51,19 @@ namespace Charleston.Detect
 
                 
                 //using (var image_data = File.OpenRead(image_file))
-                using (var image_data = myBlob)
+                /*using (var image_data = myBlob)
                 {
                     // Make a prediction against the new project
                     Console.WriteLine("Detecting objects in " + myBlob);
                     Console.WriteLine(project_id + " " + model_name);
-                    var result = prediction_client.DetectImage(project_id, model_name, image_data);
+                    var result = prediction_client.DetectImage(project_id, model_name, image_data);*/
 
-                    /*Console.WriteLine("Detecting objects in " + myBlob);
-                    Console.WriteLine($"{project_id} {model_name} images/{name}");
+                    log.LogInformation("Detecting objects in " + myBlob);
+                    log.LogInformation($"{project_id} {model_name} images/{name}");
                     string BlobSAS = System.Environment.GetEnvironmentVariable("BlobSAS");
+                    log.LogInformation(BlobSAS);
                     var image_url = new Microsoft.Azure.CognitiveServices.Vision.CustomVision.Prediction.Models.ImageUrl($"https://charlestonstorage.blob.core.windows.net/images/{name}/{BlobSAS}");
-                    var result = prediction_client.DetectImageUrl(project_id, model_name, image_url);*/
+                    var result = prediction_client.DetectImageUrl(project_id, model_name, image_url);
 
                     // Loop over each prediction
                     foreach (var prediction in result.Predictions)
@@ -83,7 +84,7 @@ namespace Charleston.Detect
                 
                         }
                     }
-                }
+                //}
                 // Save the annotated image
                 String output_file = "output.jpg";
                 image.Save(output_file);
