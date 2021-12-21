@@ -15,7 +15,11 @@ namespace Charleston.Detect
 
         [FunctionName("analyzeImage")]
 
-        public static void Run([BlobTrigger("images/{name}", Connection = "charlestonstorage_STORAGE")]Stream myBlob, string name, [Blob("processed/{name}", FileAccess.Write, Connection = "charlestonstorage_STORAGE")]Stream outputBlob, ILogger log) // Not sure if outputBlob will work
+        public static void Run(
+            [BlobTrigger("images/{name}", Connection = "charlestonstorage_STORAGE")] Stream myBlob,
+            string name,
+            [Blob("processed/{name}", FileAccess.Write, Connection = "charlestonstorage_STORAGE")] Stream outputBlob,
+            ILogger log)
         {
             log.LogInformation($"C# Blob trigger function Processed blob\n Name:{name} \n Size: {myBlob.Length} Bytes");
 
@@ -23,13 +27,9 @@ namespace Charleston.Detect
             {
                 // Get Configuration Settings
                 string prediction_endpoint = System.Environment.GetEnvironmentVariable("PredictionEndpoint");
-                log.LogInformation($"prediction_endpoint {prediction_endpoint}");
                 string prediction_key = System.Environment.GetEnvironmentVariable("PredictionKey");
-                log.LogInformation($"prediction_key {prediction_key}");
                 Guid project_id = Guid.Parse(System.Environment.GetEnvironmentVariable("ProjectID"));
-                log.LogInformation($"project_id {project_id}");
                 string model_name = System.Environment.GetEnvironmentVariable("ModelName");
-                log.LogInformation($"model_name {model_name}");
 
                 // Authenticate a client for the prediction API
                 prediction_client = new CustomVisionPredictionClient(new Microsoft.Azure.CognitiveServices.Vision.CustomVision.Prediction.ApiKeyServiceClientCredentials(prediction_key))
@@ -43,7 +43,6 @@ namespace Charleston.Detect
                 Image image = Image.FromStream(myBlob);
                 int h = image.Height;
                 int w = image.Width;
-                log.LogInformation($"Image dimensions {h}h x {w}w");
                 Graphics graphics = Graphics.FromImage(image);
                 Pen pen = new Pen(Color.Red, 3);
                 Font font = new Font("Arial", 12);
@@ -59,9 +58,8 @@ namespace Charleston.Detect
                     var result = prediction_client.DetectImage(project_id, model_name, image_data);*/
 
                     log.LogInformation("Detecting objects in " + myBlob);
-                    log.LogInformation($"{project_id} {model_name} images/{name}");
+                    log.LogInformation($"Image dimensions {h}h x {w}w");
                     string BlobSAS = System.Environment.GetEnvironmentVariable("BlobSAS");
-                    log.LogInformation(BlobSAS);
                     var image_url = new Microsoft.Azure.CognitiveServices.Vision.CustomVision.Prediction.Models.ImageUrl($"https://charlestonstorage.blob.core.windows.net/images/{name}?{BlobSAS}");
                     var result = prediction_client.DetectImageUrl(project_id, model_name, image_url);
 
@@ -76,9 +74,11 @@ namespace Charleston.Detect
                             int top = Convert.ToInt32(prediction.BoundingBox.Top * h);
                             int height = Convert.ToInt32(prediction.BoundingBox.Height * h);
                             int width =  Convert.ToInt32(prediction.BoundingBox.Width * w);
+
                             // Draw the bounding box
                             Rectangle rect = new Rectangle(left, top, width, height);
                             graphics.DrawRectangle(pen, rect);
+
                             // Annotate with the predicted label
                             graphics.DrawString(prediction.TagName,font,brush,left,top);
                 
@@ -86,14 +86,24 @@ namespace Charleston.Detect
                     }
                 //}
                 // Save the annotated image
-                String output_file = "output.jpg";
-                image.Save(output_file);
-                MemoryStream ms = new MemoryStream();
+                
+                // Preferred method
+                image.Save(outputBlob, image.RawFormat);
+                log.LogInformation($"{name} saved in output blob from image");
+
+                // Method if working with Stream (if Image format wasn't available)
+                /*MemoryStream ms = new MemoryStream();
                 image.Save(ms, image.RawFormat);
-                //myBlob.CopyTo(outputBlob);
+                ms.Seek(0, SeekOrigin.Begin);
                 ms.CopyTo(outputBlob);
+                ms.Flush();
+                log.LogInformation($"{name} saved in output blob from stream");*/
+
+                // Save locally for debugging
+                /*String output_file = name;
+                image.Save(output_file);
                 Console.WriteLine("Results saved in " + output_file);
-                log.LogInformation($"Results saved in {output_file}");
+                log.LogInformation($"{name} saved locally");*/
             }
             catch (Exception ex)
             {
