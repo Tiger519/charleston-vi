@@ -62,7 +62,7 @@ namespace Charleston.Detect
                     log.LogInformation($"{project_id} {model_name} images/{name}");
                     string BlobSAS = System.Environment.GetEnvironmentVariable("BlobSAS");
                     log.LogInformation(BlobSAS);
-                    var image_url = new Microsoft.Azure.CognitiveServices.Vision.CustomVision.Prediction.Models.ImageUrl($"https://charlestonstorage.blob.core.windows.net/images/{name}/{BlobSAS}");
+                    var image_url = new Microsoft.Azure.CognitiveServices.Vision.CustomVision.Prediction.Models.ImageUrl($"https://charlestonstorage.blob.core.windows.net/images/{name}?{BlobSAS}");
                     var result = prediction_client.DetectImageUrl(project_id, model_name, image_url);
 
                     // Loop over each prediction
