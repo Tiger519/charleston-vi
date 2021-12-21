@@ -49,19 +49,20 @@ namespace Charleston.Detect
                 SolidBrush brush = new SolidBrush(Color.Red);
 
                 
-                //using (var image_data = File.OpenRead(image_file))
-                /*using (var image_data = myBlob)
+                using (var image_data = myBlob)
                 {
                     // Make a prediction against the new project
                     Console.WriteLine("Detecting objects in " + myBlob);
                     Console.WriteLine(project_id + " " + model_name);
-                    var result = prediction_client.DetectImage(project_id, model_name, image_data);*/
 
                     log.LogInformation("Detecting objects in " + myBlob);
                     log.LogInformation($"Image dimensions {h}h x {w}w");
-                    string BlobSAS = System.Environment.GetEnvironmentVariable("BlobSAS");
-                    var image_url = new Microsoft.Azure.CognitiveServices.Vision.CustomVision.Prediction.Models.ImageUrl($"https://charlestonstorage.blob.core.windows.net/images/{name}?{BlobSAS}");
-                    var result = prediction_client.DetectImageUrl(project_id, model_name, image_url);
+                    //string BlobSAS = System.Environment.GetEnvironmentVariable("BlobSAS");
+                    //var image_url = new Microsoft.Azure.CognitiveServices.Vision.CustomVision.Prediction.Models.ImageUrl($"https://charlestonstorage.blob.core.windows.net/images/{name}?{BlobSAS}");
+                    //var result = prediction_client.DetectImageUrl(project_id, model_name, image_url);
+                    image_data.Seek(0, SeekOrigin.Begin);
+                    var result = prediction_client.DetectImage(project_id, model_name, image_data);
+                    image_data.Flush();
 
                     // Loop over each prediction
                     foreach (var prediction in result.Predictions)
@@ -84,10 +85,9 @@ namespace Charleston.Detect
                 
                         }
                     }
-                //}
+                }
+
                 // Save the annotated image
-                
-                // Preferred method
                 image.Save(outputBlob, image.RawFormat);
                 log.LogInformation($"{name} saved in output blob from image");
 
